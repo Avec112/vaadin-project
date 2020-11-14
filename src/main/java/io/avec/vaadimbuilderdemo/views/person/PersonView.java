@@ -1,13 +1,10 @@
 package io.avec.vaadimbuilderdemo.views.person;
 
-import java.util.Optional;
-
-import io.avec.vaadimbuilderdemo.data.entity.Person;
-import io.avec.vaadimbuilderdemo.data.service.PersonService;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.HasStyle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -22,11 +19,17 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-
-import org.vaadin.artur.helpers.CrudServiceDataProvider;
-import io.avec.vaadimbuilderdemo.views.main.MainView;
 import com.vaadin.flow.router.RouteAlias;
+import io.avec.vaadimbuilderdemo.data.entity.Department;
+import io.avec.vaadimbuilderdemo.data.entity.Person;
+import io.avec.vaadimbuilderdemo.data.service.PersonService;
+import io.avec.vaadimbuilderdemo.views.main.MainView;
+import lombok.extern.slf4j.Slf4j;
+import org.vaadin.artur.helpers.CrudServiceDataProvider;
 
+import java.util.Optional;
+
+@Slf4j
 @Route(value = "person", layout = MainView.class)
 @PageTitle("Person")
 @CssImport("./styles/views/personview/person-view.css")
@@ -38,7 +41,9 @@ public class PersonView extends Div {
     private final TextField email = new TextField("Email");
     private final TextField phone = new TextField("Phone");
     private final DatePicker dateOfBirth = new DatePicker("Date of birth");
-    private final TextField occupation = new TextField("Occupation");
+    private final ComboBox<Department> departmentCombo = new ComboBox<>("Department");
+
+
 
     private final Button cancel = new Button("Cancel");
     private final Button save = new Button("Save");
@@ -49,9 +54,15 @@ public class PersonView extends Div {
 
     public PersonView(PersonService personService) {
         setId("person-view");
+
+        // populate departmentCombo
+        departmentCombo.setDataProvider(
+                personService.getDepartmentService()::fetch,
+                personService.getDepartmentService()::count);
+
         // Configure Grid
         grid = new Grid<>(Person.class);
-        grid.setColumns("firstName", "lastName", "email", "phone", "dateOfBirth", "occupation");
+        grid.setColumns("firstName", "lastName", "email", "phone", "dateOfBirth", "department.departmentName"); // lookup by reflection
         grid.getColumns().forEach(column -> column.setAutoWidth(true));
         grid.setDataProvider(new CrudServiceDataProvider<Person, Void>(personService));
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
@@ -74,6 +85,24 @@ public class PersonView extends Div {
 
         // Configure Form
         binder = new Binder<>(Person.class);
+
+        // TODO binding
+        binder.forField(departmentCombo).bind(
+                person -> {
+                    if(person.getDepartment() != null) {
+                        return person.getDepartment();
+                    }
+                    return new Department();
+
+                },
+                (person, department) -> {
+//                    Department department = person.getDepartment();
+                    if(department != null) {
+                        log.debug("{} reassigned to department {}", person.getFirstName(), department);
+                        person.setDepartment(department);
+                    }
+                }
+        );
 
         // Bind fields. This where you'd define e.g. validation rules
         binder.bindInstanceFields(this);
@@ -116,7 +145,7 @@ public class PersonView extends Div {
         editorLayoutDiv.add(editorDiv);
 
         FormLayout formLayout = new FormLayout();
-        AbstractField[] fields = new AbstractField[] { firstName, lastName, email, phone, dateOfBirth, occupation };
+        AbstractField[] fields = new AbstractField[] { firstName, lastName, email, phone, dateOfBirth, departmentCombo/*, departmentField*/};
         for (AbstractField field : fields) {
             ((HasStyle) field).addClassName("full-width");
         }
