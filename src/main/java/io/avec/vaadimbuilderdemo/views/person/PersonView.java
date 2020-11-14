@@ -1,4 +1,4 @@
-package io.avec.vaadimbuilderdemo.views.helloworld;
+package io.avec.vaadimbuilderdemo.views.person;
 
 import java.util.Optional;
 
@@ -27,11 +27,11 @@ import org.vaadin.artur.helpers.CrudServiceDataProvider;
 import io.avec.vaadimbuilderdemo.views.main.MainView;
 import com.vaadin.flow.router.RouteAlias;
 
-@Route(value = "hello", layout = MainView.class)
-@PageTitle("Hello World")
-@CssImport("./styles/views/helloworld/hello-world-view.css")
-@RouteAlias(value = "", layout = MainView.class)
-public class HelloWorldView extends Div {
+@Route(value = "person", layout = MainView.class)
+@PageTitle("Person")
+@CssImport("./styles/views/personview/person-view.css")
+@RouteAlias(value = "person", layout = MainView.class)
+public class PersonView extends Div {
     private final Grid<Person> grid;
     private final TextField firstName = new TextField("First name");
     private final TextField lastName = new TextField("Last name");
@@ -47,8 +47,8 @@ public class HelloWorldView extends Div {
 
     private Person person = new Person();
 
-    public HelloWorldView(PersonService personService) {
-        setId("hello-world-view");
+    public PersonView(PersonService personService) {
+        setId("person-view");
         // Configure Grid
         grid = new Grid<>(Person.class);
         grid.setColumns("firstName", "lastName", "email", "phone", "dateOfBirth", "occupation");

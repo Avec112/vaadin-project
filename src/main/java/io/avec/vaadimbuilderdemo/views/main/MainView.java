@@ -20,8 +20,8 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.theme.Theme;
-import io.avec.vaadimbuilderdemo.views.helloworld.HelloWorldView;
-import io.avec.vaadimbuilderdemo.views.about.AboutView;
+import io.avec.vaadimbuilderdemo.views.department.DepartmentView;
+import io.avec.vaadimbuilderdemo.views.person.PersonView;
 import com.vaadin.flow.theme.lumo.Lumo;
 
 /**
@@ -29,7 +29,7 @@ import com.vaadin.flow.theme.lumo.Lumo;
  */
 @JsModule("./styles/shared-styles.js")
 @CssImport("./styles/views/main/main-view.css")
-@PWA(name = "My Project", shortName = "My Project", enableInstallPrompt = false)
+@PWA(name = "Vaadin", shortName = "Vaadin", enableInstallPrompt = false)
 @Theme(value = Lumo.class, variant = Lumo.DARK)
 public class MainView extends AppLayout {
 
@@ -67,8 +67,8 @@ public class MainView extends AppLayout {
         HorizontalLayout logoLayout = new HorizontalLayout();
         logoLayout.setId("logo");
         logoLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        logoLayout.add(new Image("images/logo.png", "My Project logo"));
-        logoLayout.add(new H1("My Project"));
+        logoLayout.add(new Image("images/logo.png", "Vaadin logo"));
+        logoLayout.add(new H1("Vaadin"));
         layout.add(logoLayout, menu);
         return layout;
     }
@@ -84,8 +84,8 @@ public class MainView extends AppLayout {
 
     private Component[] createMenuItems() {
         return new Tab[] {
-            createTab("Hello World", HelloWorldView.class),
-            createTab("About", AboutView.class)
+                createTab("Department", DepartmentView.class),
+                createTab("Person", PersonView.class)
         };
     }
 
