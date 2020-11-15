@@ -2,6 +2,7 @@ package io.avec.vaadimbuilderdemo.views.person;
 
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.HasStyle;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -25,8 +26,10 @@ import io.avec.vaadimbuilderdemo.data.entity.Person;
 import io.avec.vaadimbuilderdemo.data.service.PersonService;
 import io.avec.vaadimbuilderdemo.views.main.MainView;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.vaadin.artur.helpers.CrudServiceDataProvider;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -83,29 +86,13 @@ public class PersonView extends Div {
             }
         });
 
+        // Define mandatory fields
+        firstName.setRequired(true);
+        departmentCombo.setRequired(true);
+
         // Configure Form
         binder = new Binder<>(Person.class);
-
-        // TODO binding
-        binder.forField(departmentCombo).bind(
-                person -> {
-                    if(person.getDepartment() != null) {
-                        return person.getDepartment();
-                    }
-                    return new Department();
-
-                },
-                (person, department) -> {
-//                    Department department = person.getDepartment();
-                    if(department != null) {
-                        log.debug("{} reassigned to department {}", person.getFirstName(), department);
-                        person.setDepartment(department);
-                    }
-                }
-        );
-
-        // Bind fields. This where you'd define e.g. validation rules
-        binder.bindInstanceFields(this);
+        setupBinding();
 
         cancel.addClickListener(e -> {
             clearForm();
@@ -115,7 +102,7 @@ public class PersonView extends Div {
         save.addClickListener(e -> {
             try {
                 if (this.person == null) {
-                    this.person = new Person();
+                    Notification.show("Please add some values.");
                 }
                 binder.writeBean(this.person);
                 personService.update(this.person);
@@ -136,6 +123,33 @@ public class PersonView extends Div {
         add(splitLayout);
     }
 
+    private void setupBinding() {
+        // TODO binding
+        binder.forField(firstName)
+                .withValidator(StringUtils::isNoneBlank, "First name must be set.")
+                .bind(Person::getFirstName, Person::setFirstName);
+        binder.forField(departmentCombo)
+                .withValidator(Objects::nonNull, "Department must be set.")
+                .bind(person -> {
+                    if(person.getDepartment() != null) {
+                        return person.getDepartment();
+                    }
+                    return new Department();
+
+                },
+                (person, department) -> {
+//                    Department department = person.getDepartment();
+                    if(department != null) {
+                        log.debug("{} reassigned to department {}", person.getFirstName(), department);
+                        person.setDepartment(department);
+                    }
+                }
+        );
+
+        // Bind the other fields. No validation done here and must be done earlier.
+        binder.bindInstanceFields(this);
+    }
+
     private void createEditorLayout(SplitLayout splitLayout) {
         Div editorLayoutDiv = new Div();
         editorLayoutDiv.setId("editor-layout");
@@ -145,7 +159,7 @@ public class PersonView extends Div {
         editorLayoutDiv.add(editorDiv);
 
         FormLayout formLayout = new FormLayout();
-        AbstractField[] fields = new AbstractField[] { firstName, lastName, email, phone, dateOfBirth, departmentCombo/*, departmentField*/};
+        AbstractField[] fields = new AbstractField[] {firstName, lastName, email, phone, dateOfBirth, departmentCombo/*, departmentField*/};
         for (AbstractField field : fields) {
             ((HasStyle) field).addClassName("full-width");
         }
@@ -165,6 +179,7 @@ public class PersonView extends Div {
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         buttonLayout.add(save, cancel);
         editorLayoutDiv.add(buttonLayout);
+        save.addClickShortcut(Key.ENTER);
     }
 
     private void createGridLayout(SplitLayout splitLayout) {
